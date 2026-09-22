@@ -2,192 +2,344 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
-
 from urllib.parse import urlparse
 from sklearn.ensemble import RandomForestClassifier
-
-
 # ============================================================
-# PHISHGUARD — THREAT INTELLIGENCE WEB APP
+# PHISHGUARD — ADVANCED THREAT INTELLIGENCE CENTER
 # ============================================================
-
 st.set_page_config(
     page_title="PhishGuard | Threat Intelligence",
     page_icon="🛡️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
-
-
 # ============================================================
-# CUSTOM DARK CYBERSECURITY DESIGN
+# ADVANCED CYBERSECURITY UI
 # ============================================================
-
 st.markdown("""
 <style>
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
 .stApp {
     background:
-        radial-gradient(circle at 10% 10%, rgba(0, 180, 255, 0.08), transparent 30%),
-        radial-gradient(circle at 90% 20%, rgba(0, 120, 255, 0.06), transparent 30%),
-        #070b12;
+        radial-gradient(circle at 15% 10%, rgba(0, 212, 255, 0.09), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(60, 100, 255, 0.08), transparent 25%),
+        linear-gradient(180deg, #05080d 0%, #080d15 50%, #05080d 100%);
     color: #e6edf3;
 }
-
 .block-container {
-    padding-top: 2rem;
-    max-width: 1400px;
+    max-width: 1450px;
+    padding-top: 1.2rem;
+    padding-bottom: 3rem;
 }
-
-h1, h2, h3 {
-    color: #f1f5f9 !important;
+/* ---------- HEADER ---------- */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0 18px 0;
+    border-bottom: 1px solid rgba(148,163,184,0.12);
+    margin-bottom: 25px;
 }
-
-.phishguard-header {
-    padding: 20px 0 10px 0;
+.brand {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
 }
-
-.logo {
+.brand-main {
+    color: #ffffff;
+}
+.brand-accent {
+    color: #00d9ff;
+}
+.status {
+    color: #5eead4;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: rgba(20,184,166,0.08);
+    border: 1px solid rgba(45,212,191,0.18);
+    padding: 7px 12px;
+    border-radius: 20px;
+}
+.subtitle {
+    color: #718096;
+    font-size: 12px;
+    letter-spacing: 1.4px;
+    margin-top: 5px;
+}
+/* ---------- HERO ---------- */
+.hero {
+    background:
+        linear-gradient(135deg,
+        rgba(8,18,30,0.96),
+        rgba(7,14,24,0.92));
+    border: 1px solid rgba(0,217,255,0.15);
+    border-radius: 18px;
+    padding: 34px;
+    margin-bottom: 22px;
+    position: relative;
+    overflow: hidden;
+}
+.hero:after {
+    content: "";
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    right: -100px;
+    top: -130px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,217,255,0.10);
+    box-shadow:
+        0 0 0 30px rgba(0,217,255,0.02),
+        0 0 0 60px rgba(0,217,255,0.015);
+}
+.hero-title {
     font-size: 34px;
     font-weight: 800;
-    letter-spacing: 1px;
+    margin-bottom: 7px;
 }
-
-.logo span {
-    color: #00d4ff;
+.hero-title span {
+    color: #00d9ff;
 }
-
-.subtitle {
-    color: #7f8ea3;
+.hero-description {
+    color: #8492a6;
     font-size: 14px;
-    margin-top: -8px;
+    max-width: 720px;
+    line-height: 1.7;
 }
-
-.intel-card {
-    background: rgba(15, 23, 36, 0.88);
-    border: 1px solid rgba(0, 212, 255, 0.16);
+/* ---------- SECTION TITLES ---------- */
+.section-label {
+    color: #00d9ff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    margin: 24px 0 10px 0;
+}
+/* ---------- CARDS ---------- */
+.card {
+    background: rgba(10,18,29,0.88);
+    border: 1px solid rgba(148,163,184,0.10);
     border-radius: 14px;
-    padding: 22px;
-    margin-bottom: 18px;
-}
-
-.metric-card {
-    background: rgba(12, 20, 32, 0.95);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
     padding: 20px;
-    min-height: 120px;
+    margin-bottom: 15px;
 }
-
-.metric-title {
-    color: #7f8ea3;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.metric-value {
-    color: #f8fafc;
-    font-size: 28px;
-    font-weight: 750;
-    margin-top: 8px;
-}
-
-.threat-low {
-    color: #22c55e;
-    font-weight: 800;
-}
-
-.threat-medium {
-    color: #f59e0b;
-    font-weight: 800;
-}
-
-.threat-high {
-    color: #ef4444;
-    font-weight: 800;
-}
-
-.section-title {
+.card-title {
+    color: #dce6f2;
     font-size: 13px;
-    color: #00d4ff;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
     font-weight: 700;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
 }
-
-.url-box {
-    background: #0b111c;
-    border: 1px solid rgba(0, 212, 255, 0.25);
-    border-radius: 10px;
-    padding: 14px;
+/* ---------- URL INPUT ---------- */
+div[data-baseweb="input"] {
+    background: #080f18 !important;
+    border: 1px solid rgba(0,217,255,0.18) !important;
+    border-radius: 10px !important;
 }
-
-.indicator {
-    background: #0c1420;
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 8px;
-    border: 1px solid rgba(255,255,255,0.05);
+div[data-baseweb="input"] input {
+    color: #e2e8f0 !important;
+    font-family: 'JetBrains Mono', monospace !important;
 }
-
-.footer {
-    color: #64748b;
-    text-align: center;
-    padding: 30px 0 10px 0;
-    font-size: 12px;
-}
-
+/* ---------- BUTTON ---------- */
 div.stButton > button {
     width: 100%;
-    background: #00a8cc;
-    color: white;
-    border: none;
+    min-height: 45px;
     border-radius: 9px;
-    padding: 10px;
+    border: 1px solid rgba(0,217,255,0.25);
+    background: linear-gradient(
+        135deg,
+        #009fc2,
+        #007a9d
+    );
+    color: white;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    transition: 0.2s;
+}
+div.stButton > button:hover {
+    border-color: #00d9ff;
+    background: linear-gradient(
+        135deg,
+        #00b8df,
+        #008eb5
+    );
+}
+/* ---------- METRIC CARDS ---------- */
+.metric {
+    background: rgba(9,17,28,0.94);
+    border: 1px solid rgba(148,163,184,0.10);
+    border-radius: 13px;
+    padding: 18px;
+    min-height: 105px;
+}
+.metric-label {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+}
+.metric-value {
+    color: #f8fafc;
+    font-size: 25px;
+    font-weight: 800;
+    margin-top: 9px;
+}
+.low {
+    color: #34d399;
+}
+.medium {
+    color: #fbbf24;
+}
+.high {
+    color: #fb7185;
+}
+/* ---------- SCORE ---------- */
+.score-box {
+    text-align: center;
+    background:
+        radial-gradient(circle at center,
+        rgba(0,217,255,0.08),
+        transparent 60%),
+        #08101a;
+    border: 1px solid rgba(0,217,255,0.14);
+    border-radius: 15px;
+    padding: 25px;
+}
+.score-number {
+    font-size: 58px;
+    font-weight: 800;
+    line-height: 1;
+}
+.score-caption {
+    color: #64748b;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    margin-top: 8px;
+}
+/* ---------- INDICATORS ---------- */
+.indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-radius: 9px;
+    background: rgba(15,23,36,0.75);
+    border: 1px solid rgba(148,163,184,0.07);
+}
+.indicator-icon {
+    font-size: 15px;
+    width: 24px;
+}
+.indicator-title {
+    color: #dbe5ef;
+    font-size: 12px;
     font-weight: 700;
 }
-
-div.stButton > button:hover {
-    background: #00c4ed;
+.indicator-description {
+    color: #64748b;
+    font-size: 11px;
+    margin-top: 2px;
 }
-
+/* ---------- INTELLIGENCE ROWS ---------- */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(148,163,184,0.07);
+}
+.info-row:last-child {
+    border-bottom: none;
+}
+.info-name {
+    color: #718096;
+    font-size: 11px;
+}
+.info-value {
+    color: #dce6f2;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+}
+/* ---------- BADGE ---------- */
+.badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+/* ---------- FOOTER ---------- */
+.footer {
+    text-align: center;
+    color: #475569;
+    font-size: 10px;
+    line-height: 1.8;
+    margin-top: 40px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(148,163,184,0.08);
+}
+/* ---------- HIDE STREAMLIT BRANDING ---------- */
+#MainMenu {
+    visibility: hidden;
+}
+footer {
+    visibility: hidden;
+}
+header {
+    visibility: hidden;
+}
 </style>
 """, unsafe_allow_html=True)
-
-
 # ============================================================
 # HEADER
 # ============================================================
-
 st.markdown("""
-<div class="phishguard-header">
-    <div class="logo">🛡️ <span>PHISH</span>GUARD</div>
-    <div class="subtitle">
-        MACHINE LEARNING • URL THREAT INTELLIGENCE • RISK ANALYSIS
+<div class="topbar">
+    <div>
+        <div class="brand">
+            <span class="brand-main">PHISH</span><span class="brand-accent">GUARD</span>
+        </div>
+        <div class="subtitle">
+            THREAT INTELLIGENCE &nbsp;•&nbsp; URL RISK ANALYSIS
+        </div>
+    </div>
+    <div class="status">
+        ● SYSTEM ONLINE
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-st.divider()
-
-
 # ============================================================
-# LOAD DATASET
+# HERO
 # ============================================================
-
+st.markdown("""
+<div class="hero">
+    <div class="hero-title">
+        Analyze <span>URL Threats</span> Before You Click
+    </div>
+    <div class="hero-description">
+        PhishGuard analyzes structural URL characteristics using a
+        machine-learning model and security indicators to generate
+        an estimated phishing risk score.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+# ============================================================
+# LOAD DATA
+# ============================================================
 @st.cache_data
 def load_dataset():
     return pd.read_csv("phishguard_dataset.csv")
-
-
 df = load_dataset()
-
-
 # ============================================================
-# TRAIN MODEL
+# MODEL
 # ============================================================
-
 FEATURES = [
     "url_length",
     "https",
@@ -201,29 +353,20 @@ FEATURES = [
     "subdomain_count",
     "shortener"
 ]
-
 X = df[FEATURES]
 y = df["label"]
-
 model = RandomForestClassifier(
     n_estimators=200,
     max_depth=12,
     random_state=42
 )
-
 model.fit(X, y)
-
-
 # ============================================================
 # FEATURE EXTRACTION
 # ============================================================
-
 def extract_features(url):
-
     parsed = urlparse(url)
-
     hostname = parsed.netloc.lower()
-
     suspicious_words = [
         "login",
         "verify",
@@ -238,7 +381,6 @@ def extract_features(url):
         "payment",
         "wallet"
     ]
-
     shorteners = [
         "bit.ly",
         "tinyurl.com",
@@ -247,84 +389,76 @@ def extract_features(url):
         "is.gd",
         "ow.ly"
     ]
-
     return {
         "url_length": len(url),
-
-        "https": int(url.lower().startswith("https://")),
-
-        "has_ip": int(bool(
-            re.search(
-                r"(?:\d{1,3}\.){3}\d{1,3}",
-                hostname
+        "https": int(
+            url.lower().startswith("https://")
+        ),
+        "has_ip": int(
+            bool(
+                re.search(
+                    r"(?:\d{1,3}\.){3}\d{1,3}",
+                    hostname
+                )
             )
-        )),
-
+        ),
         "dot_count": url.count("."),
-
         "hyphen_count": url.count("-"),
-
         "at_count": url.count("@"),
-
-        "digit_count": sum(c.isdigit() for c in url),
-
+        "digit_count": sum(
+            c.isdigit() for c in url
+        ),
         "special_char_count": sum(
             not c.isalnum() for c in url
         ),
-
         "suspicious_word_count": sum(
             word in url.lower()
             for word in suspicious_words
         ),
-
         "subdomain_count": max(
             len(hostname.split(".")) - 2,
             0
         ),
-
         "shortener": int(
-            any(shortener in hostname for shortener in shorteners)
+            any(
+                shortener in hostname
+                for shortener in shorteners
+            )
         )
     }
-
-
 # ============================================================
-# RISK ANALYSIS
+# ANALYSIS
 # ============================================================
-
 def analyze_url(url):
-
     features = extract_features(url)
-
     feature_df = pd.DataFrame(
         [features],
         columns=FEATURES
     )
-
-    prediction = model.predict(feature_df)[0]
-
-    probabilities = model.predict_proba(feature_df)[0]
-
+    prediction = model.predict(
+        feature_df
+    )[0]
+    probabilities = model.predict_proba(
+        feature_df
+    )[0]
     suspicious_index = list(
         model.classes_
     ).index(1)
-
-    probability = probabilities[suspicious_index]
-
-    risk_score = round(probability * 100)
-
+    probability = probabilities[
+        suspicious_index
+    ]
+    risk_score = round(
+        probability * 100
+    )
     if risk_score < 30:
         risk_level = "LOW RISK"
-        risk_class = "threat-low"
-
+        risk_class = "low"
     elif risk_score < 70:
         risk_level = "MEDIUM RISK"
-        risk_class = "threat-medium"
-
+        risk_class = "medium"
     else:
         risk_level = "HIGH RISK"
-        risk_class = "threat-high"
-
+        risk_class = "high"
     return (
         features,
         prediction,
@@ -333,117 +467,133 @@ def analyze_url(url):
         risk_level,
         risk_class
     )
-
-
 # ============================================================
-# THREAT EXPLANATION
+# SECURITY INDICATORS
 # ============================================================
-
-def explain_features(url, features):
-
+def get_indicators(features):
     indicators = []
-
-    if features["https"] == 0:
-        indicators.append(
-            ("⚠️", "HTTPS", "Connection does not use HTTPS")
-        )
-    else:
-        indicators.append(
-            ("✓", "HTTPS", "Secure protocol detected")
-        )
-
-    if features["has_ip"]:
-        indicators.append(
-            ("⚠️", "IP Address", "URL contains an IP address")
-        )
-    else:
-        indicators.append(
-            ("✓", "IP Address", "No direct IP address detected")
-        )
-
-    if features["suspicious_word_count"] > 0:
+    if features["https"]:
         indicators.append(
             (
-                "⚠️",
-                "Suspicious Keywords",
-                f"{features['suspicious_word_count']} suspicious keyword(s) detected"
+                "✓",
+                "Secure Protocol",
+                "HTTPS detected"
             )
         )
     else:
         indicators.append(
-            ("✓", "Suspicious Keywords", "No known suspicious keywords detected")
+            (
+                "⚠",
+                "Secure Protocol",
+                "HTTPS not detected"
+            )
         )
-
+    if features["has_ip"]:
+        indicators.append(
+            (
+                "⚠",
+                "IP Address",
+                "Direct IP address detected"
+            )
+        )
+    else:
+        indicators.append(
+            (
+                "✓",
+                "IP Address",
+                "No direct IP detected"
+            )
+        )
+    if features["suspicious_word_count"]:
+        indicators.append(
+            (
+                "⚠",
+                "Suspicious Keywords",
+                f"{features['suspicious_word_count']} detected"
+            )
+        )
+    else:
+        indicators.append(
+            (
+                "✓",
+                "Suspicious Keywords",
+                "None detected"
+            )
+        )
     if features["url_length"] > 75:
         indicators.append(
-            ("⚠️", "URL Length", "Unusually long URL")
+            (
+                "⚠",
+                "URL Length",
+                "Unusually long URL"
+            )
         )
     else:
         indicators.append(
-            ("✓", "URL Length", "URL length appears normal")
+            (
+                "✓",
+                "URL Length",
+                "Within normal range"
+            )
         )
-
     if features["hyphen_count"] >= 3:
         indicators.append(
-            ("⚠️", "Hyphens", "Multiple hyphens detected")
+            (
+                "⚠",
+                "Hyphen Pattern",
+                "Multiple hyphens detected"
+            )
         )
     else:
         indicators.append(
-            ("✓", "Hyphens", "No unusual number of hyphens")
+            (
+                "✓",
+                "Hyphen Pattern",
+                "No unusual pattern"
+            )
         )
-
-    if features["at_count"] > 0:
+    if features["at_count"]:
         indicators.append(
-            ("⚠️", "@ Symbol", "@ symbol detected in URL")
+            (
+                "⚠",
+                "@ Symbol",
+                "@ character detected"
+            )
         )
     else:
         indicators.append(
-            ("✓", "@ Symbol", "No @ symbol detected")
+            (
+                "✓",
+                "@ Symbol",
+                "Not detected"
+            )
         )
-
     return indicators
-
-
 # ============================================================
-# URL ANALYZER
+# ANALYZER INPUT
 # ============================================================
-
 st.markdown(
-    '<div class="section-title">URL THREAT ANALYZER</div>',
+    '<div class="section-label">TARGET ANALYSIS</div>',
     unsafe_allow_html=True
 )
-
-st.markdown(
-    '<div class="intel-card">',
-    unsafe_allow_html=True
-)
-
 url = st.text_input(
-    "Enter URL for analysis",
-    placeholder="https://example.com/login"
+    "Target URL",
+    placeholder="https://example.com/login",
+    label_visibility="collapsed"
 )
-
-analyze_button = st.button(
-    "🔍 ANALYZE THREAT"
+analyze = st.button(
+    "🔍  ANALYZE THREAT"
 )
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-
 # ============================================================
 # RESULTS
 # ============================================================
-
-if analyze_button:
-
+if analyze:
     if not url.strip():
-
-        st.warning("Please enter a URL for analysis.")
-
+        st.warning(
+            "Enter a URL to begin the threat analysis."
+        )
     else:
-
         try:
-
             (
                 features,
                 prediction,
@@ -452,56 +602,53 @@ if analyze_button:
                 risk_level,
                 risk_class
             ) = analyze_url(url)
-
-            indicators = explain_features(
-                url,
+            indicators = get_indicators(
                 features
             )
-
             # ------------------------------------------------
-            # URL DISPLAY
+            # TARGET
             # ------------------------------------------------
-
             st.markdown(
                 f"""
-                <div class="intel-card">
-                    <div class="section-title">ANALYZED TARGET</div>
-                    <div style="font-size:16px; color:#cbd5e1;">
+                <div class="card">
+                    <div class="section-label">
+                        ANALYZED TARGET
+                    </div>
+                    <div style="
+                        font-family:'JetBrains Mono';
+                        font-size:13px;
+                        color:#cbd5e1;
+                        word-break:break-all;
+                    ">
                         {url}
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-
             # ------------------------------------------------
-            # METRICS
+            # TOP METRICS
             # ------------------------------------------------
-
-            col1, col2, col3, col4 = st.columns(4)
-
-            with col1:
-
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
                 st.markdown(
                     f"""
-                    <div class="metric-card">
-                        <div class="metric-title">
+                    <div class="metric">
+                        <div class="metric-label">
                             Threat Score
                         </div>
-                        <div class="metric-value">
+                        <div class="metric-value {risk_class}">
                             {risk_score}/100
                         </div>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
-
-            with col2:
-
+            with c2:
                 st.markdown(
                     f"""
-                    <div class="metric-card">
-                        <div class="metric-title">
+                    <div class="metric">
+                        <div class="metric-label">
                             Risk Level
                         </div>
                         <div class="metric-value {risk_class}">
@@ -511,19 +658,16 @@ if analyze_button:
                     """,
                     unsafe_allow_html=True
                 )
-
-            with col3:
-
+            with c3:
                 classification = (
                     "SUSPICIOUS"
                     if prediction == 1
                     else "LOW CONCERN"
                 )
-
                 st.markdown(
                     f"""
-                    <div class="metric-card">
-                        <div class="metric-title">
+                    <div class="metric">
+                        <div class="metric-label">
                             Classification
                         </div>
                         <div class="metric-value">
@@ -533,13 +677,11 @@ if analyze_button:
                     """,
                     unsafe_allow_html=True
                 )
-
-            with col4:
-
+            with c4:
                 st.markdown(
                     f"""
-                    <div class="metric-card">
-                        <div class="metric-title">
+                    <div class="metric">
+                        <div class="metric-label">
                             Model Probability
                         </div>
                         <div class="metric-value">
@@ -549,114 +691,243 @@ if analyze_button:
                     """,
                     unsafe_allow_html=True
                 )
-
-
             st.write("")
-
-
             # ------------------------------------------------
-            # TWO-COLUMN INTELLIGENCE PANEL
+            # SCORE + INTELLIGENCE
             # ------------------------------------------------
-
-            left, right = st.columns(2)
-
+            left, right = st.columns(
+                [0.9, 1.5]
+            )
             with left:
-
                 st.markdown(
-                    '<div class="section-title">SECURITY INDICATORS</div>',
+                    '<div class="section-label">RISK ASSESSMENT</div>',
                     unsafe_allow_html=True
                 )
-
-                for icon, title, message in indicators:
-
-                    st.markdown(
-                        f"""
-                        <div class="indicator">
-                            <strong>{icon} {title}</strong>
-                            <br>
-                            <span style="color:#7f8ea3;">
-                                {message}
-                            </span>
+                st.markdown(
+                    f"""
+                    <div class="score-box">
+                        <div class="score-number {risk_class}">
+                            {risk_score}
                         </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-
-            with right:
-
-                st.markdown(
-                    '<div class="section-title">URL INTELLIGENCE</div>',
+                        <div class="score-caption">
+                            ESTIMATED THREAT SCORE / 100
+                        </div>
+                        <div style="
+                            margin-top:18px;
+                            color:#94a3b8;
+                            font-size:11px;
+                            line-height:1.6;
+                        ">
+                            Based on URL structural characteristics
+                            and Random Forest model probability.
+                        </div>
+                    </div>
+                    """,
                     unsafe_allow_html=True
                 )
-
-                intelligence = {
-                    "URL Length": features["url_length"],
-                    "HTTPS": "Enabled" if features["https"] else "Not detected",
-                    "IP Address": "Detected" if features["has_ip"] else "Not detected",
-                    "Subdomains": features["subdomain_count"],
-                    "Hyphens": features["hyphen_count"],
-                    "Digits": features["digit_count"],
-                    "Special Characters": features["special_char_count"],
-                    "Suspicious Keywords": features["suspicious_word_count"]
-                }
-
-                for key, value in intelligence.items():
-
+            with right:
+                st.markdown(
+                    '<div class="section-label">URL INTELLIGENCE</div>',
+                    unsafe_allow_html=True
+                )
+                st.markdown(
+                    '<div class="card">',
+                    unsafe_allow_html=True
+                )
+                parsed = urlparse(url)
+                domain = (
+                    parsed.netloc
+                    if parsed.netloc
+                    else "Not detected"
+                )
+                protocol = (
+                    parsed.scheme.upper()
+                    if parsed.scheme
+                    else "Unknown"
+                )
+                intelligence = [
+                    (
+                        "DOMAIN",
+                        domain
+                    ),
+                    (
+                        "PROTOCOL",
+                        protocol
+                    ),
+                    (
+                        "URL LENGTH",
+                        str(features["url_length"])
+                    ),
+                    (
+                        "SUBDOMAINS",
+                        str(features["subdomain_count"])
+                    ),
+                    (
+                        "DOT COUNT",
+                        str(features["dot_count"])
+                    ),
+                    (
+                        "DIGITS",
+                        str(features["digit_count"])
+                    ),
+                    (
+                        "SPECIAL CHARACTERS",
+                        str(features["special_char_count"])
+                    )
+                ]
+                for name, value in intelligence:
                     st.markdown(
                         f"""
-                        <div class="indicator">
-                            <strong>{key}</strong>
-                            <span style="float:right;color:#cbd5e1;">
+                        <div class="info-row">
+                            <span class="info-name">
+                                {name}
+                            </span>
+                            <span class="info-value">
                                 {value}
                             </span>
                         </div>
                         """,
                         unsafe_allow_html=True
                     )
-
-
+                st.markdown(
+                    '</div>',
+                    unsafe_allow_html=True
+                )
             # ------------------------------------------------
-            # MODEL INFORMATION
+            # SECURITY INDICATORS
             # ------------------------------------------------
-
-            st.write("")
-
             st.markdown(
-                """
-                <div class="intel-card">
-                    <div class="section-title">
-                        MACHINE LEARNING ANALYSIS
+                '<div class="section-label">SECURITY INDICATORS</div>',
+                unsafe_allow_html=True
+            )
+            ind_left, ind_right = st.columns(2)
+            for index, item in enumerate(indicators):
+                icon, title, description = item
+                target_column = (
+                    ind_left
+                    if index % 2 == 0
+                    else ind_right
+                )
+                with target_column:
+                    icon_class = (
+                        "low"
+                        if icon == "✓"
+                        else "medium"
+                    )
+                    st.markdown(
+                        f"""
+                        <div class="indicator">
+                            <div class="indicator-icon {icon_class}">
+                                {icon}
+                            </div>
+                            <div>
+                                <div class="indicator-title">
+                                    {title}
+                                </div>
+                                <div class="indicator-description">
+                                    {description}
+                                </div>
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+            # ------------------------------------------------
+            # MACHINE LEARNING PANEL
+            # ------------------------------------------------
+            st.markdown(
+                '<div class="section-label">MACHINE LEARNING ANALYSIS</div>',
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""
+                <div class="card">
+                    <div class="card-title">
+                        Random Forest Classification
                     </div>
-
-                    <p style="color:#94a3b8;">
-                        PhishGuard uses a Random Forest classifier trained
-                        on the project's synthetic URL dataset. The model
-                        analyzes structural URL characteristics and produces
-                        a probability-based risk estimate.
-                    </p>
+                    <div style="
+                        color:#8492a6;
+                        font-size:12px;
+                        line-height:1.7;
+                    ">
+                        PhishGuard analyzes the URL using
+                        <strong style="color:#dbeafe;">
+                        {len(FEATURES)} engineered URL features
+                        </strong>
+                        and a Random Forest classification model.
+                        The model produced an estimated suspicious
+                        probability of
+                        <strong style="color:#00d9ff;">
+                        {probability * 100:.1f}%
+                        </strong>.
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-
-        except Exception as e:
-
-            st.error(
-                f"Unable to analyze this URL: {str(e)}"
+            # ------------------------------------------------
+            # FEATURE SNAPSHOT
+            # ------------------------------------------------
+            st.markdown(
+                '<div class="section-label">FEATURE SNAPSHOT</div>',
+                unsafe_allow_html=True
             )
-
-
+            feature_cols = st.columns(4)
+            snapshot = [
+                (
+                    "HTTPS",
+                    "YES" if features["https"] else "NO"
+                ),
+                (
+                    "IP DETECTED",
+                    "YES" if features["has_ip"] else "NO"
+                ),
+                (
+                    "SHORTENER",
+                    "YES" if features["shortener"] else "NO"
+                ),
+                (
+                    "SUSPICIOUS WORDS",
+                    str(features["suspicious_word_count"])
+                )
+            ]
+            for column, (name, value) in zip(
+                feature_cols,
+                snapshot
+            ):
+                with column:
+                    st.markdown(
+                        f"""
+                        <div class="metric">
+                            <div class="metric-label">
+                                {name}
+                            </div>
+                            <div class="metric-value"
+                                 style="font-size:19px;">
+                                {value}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+        except Exception as error:
+            st.error(
+                f"Analysis error: {error}"
+            )
 # ============================================================
-# FOOTER
+# DISCLAIMER + FOOTER
 # ============================================================
-
 st.markdown(
     """
     <div class="footer">
-        🛡️ PHISHGUARD • MACHINE-LEARNING-BASED URL RISK ANALYSIS
+        <strong>PHISHGUARD</strong>
+        &nbsp;•&nbsp;
+        MACHINE-LEARNING-BASED URL RISK ANALYSIS
         <br>
-        Educational cybersecurity prototype • Synthetic dataset
+        Educational cybersecurity prototype.
+        The model was trained using a synthetic dataset and
+        should not be treated as definitive evidence that a URL
+        is safe or malicious.
     </div>
     """,
     unsafe_allow_html=True
